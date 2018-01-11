@@ -31,11 +31,9 @@ function GrimoireKeeper:OnInitialize()
 	self:SecureHook('MerchantFrame_UpdateMerchantInfo')
 end
 
-function GrimoireKeeper:PET_BAR_UPDATE()
-	local hasPetSpells, petToken = HasPetSpells()
-	if not hasPetSpells and petToken ~= 'DEMON' then return end
+function GrimoireKeeper:PET_BAR_UPDATE()	
+	GrimoireKeeperData = {}
 	
-	GrimoireKeeperData = {}	
 	for i=1, SPELLS_PER_PAGE do
 		local name, rank = GetSpellName(i, BOOKTYPE_PET)
 		if not name then break end
@@ -54,6 +52,7 @@ function GrimoireKeeper:PET_BAR_UPDATE()
 end
 
 function GrimoireKeeper:MerchantFrame_UpdateMerchantInfo()
+	if not PetActionBarFrame:IsShown() then return end
 	for i=1, MERCHANT_ITEMS_PER_PAGE do
 		local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
 		if index <= GetMerchantNumItems() then

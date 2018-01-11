@@ -4,10 +4,12 @@
 ## Notes-ruRU: Отслеживает, какие гримуары были изучены вашим демоном.
 ## Author: Lichery
 ## Version: 3.0
-## Dependencies: !Libs
 
+## X-Date: 17.12.2017
 ## X-Credits: Original autor Ayradyss
-## X-Email: dr.nykki@gmail.com
 ## X-Category: Warlock 
+## X-Website: https://vk.com/id65515748
+
+Libs\embeds.xml
 
 GrimoireKeeper.lua

@@ -75,17 +75,17 @@ function GrimoireKeeper:MerchantFrame_UpdateMerchantInfo()
 			if self:isValidGrimuare(itemID) then
 				for k in pairs(GrimoireKeeperData) do
 					if itemID == GrimoireKeeperData[k] then
-						SetItemButtonNameFrameVertexColor(merchantButton, 0, .75, .75)
-						SetItemButtonSlotVertexColor(merchantButton, 0, .75, .75)
-						SetItemButtonTextureVertexColor(itemButton, 0, .75, .75)
-						SetItemButtonNormalTextureVertexColor(itemButton, 0, .75, .75)
+						SetItemButtonNameFrameVertexColor(merchantButton, 0, .5, .5)
+						SetItemButtonSlotVertexColor(merchantButton, 0, .5, .5)
+						SetItemButtonTextureVertexColor(itemButton, 0, .5, .5)
+						SetItemButtonNormalTextureVertexColor(itemButton, 0, .5, .5)
 					end
 				end
 			else
-				SetItemButtonNameFrameVertexColor(merchantButton, 1, 0, 0)
-				SetItemButtonSlotVertexColor(merchantButton, 1, 0, 0)
-				SetItemButtonTextureVertexColor(itemButton, .9, 0, 0)
-				SetItemButtonNormalTextureVertexColor(itemButton, .9, 0, 0)
+				SetItemButtonNameFrameVertexColor(merchantButton, .5, 0, 0)
+				SetItemButtonSlotVertexColor(merchantButton, .5, 0, 0)
+				SetItemButtonTextureVertexColor(itemButton, .5, 0, 0)
+				SetItemButtonNormalTextureVertexColor(itemButton, .5, 0, 0)
 			end
 		end
 	end

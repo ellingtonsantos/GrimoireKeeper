@@ -1,3 +1,3 @@
 # GrimoireKeeper
 [1.12.1] Tracks which grimoires your warlock pets have learned.  
-![bandicam 2018-01-12 23-43-55-408](https://user-images.githubusercontent.com/24303693/34895078-207a4008-f7f5-11e7-8fbf-c8dc4a2a3121.jpg)
+![bandicam 2018-05-18 23-24-44-939](https://user-images.githubusercontent.com/24303693/40257301-684b56ec-5af6-11e8-947a-3728f916f895.jpg)

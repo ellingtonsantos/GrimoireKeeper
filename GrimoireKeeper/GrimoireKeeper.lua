@@ -8,28 +8,28 @@ function GrimoireKeeper:OnInitialize()
 	GrimoireTable = {
 		-- [spell name] = {grimoire id by ranks}
 		['Imp'] = {
-			['Firebolt'] 						= {nil,     '16302', '16316', '16317', '16318', '16319', '16320'},
-			['Blood Pact'] 					= {'16321', '16322', '16323', '16324', '16325'},
-			['Fire Shield'] 				= {'16326', '16327', '16328', '16329', '16330'},
-			['Phase Shift'] 				= {'16331'}
+			['Spell_Fire_FireBolt']							= {nil,     '16302', '16316', '16317', '16318', '16319', '16320'}, -- Firebolt
+			['Spell_Shadow_BloodBoil']					= {'16321', '16322', '16323', '16324', '16325'}, -- Blood Pact
+			['Spell_Fire_FireArmor']						= {'16326', '16327', '16328', '16329', '16330'}, -- Fire Shield
+			['Spell_Shadow_ImpPhaseShift']			= {'16331'} -- Phase Shift
 		},
 		['Voidwalker'] = {
-			['Torment'] 						= {nil,     '16346', '16347', '16348', '16349', '16350'},
-			['Sacrifice'] 					= {'16351', '16352', '16353', '16354', '16355', '16356'},
-			['Consume Shadows'] 		= {'16357', '16358', '16359', '16360', '16361', '16362'},
-			['Suffering'] 					= {'16363', '16364', '16365', '16366'}
+			['Spell_Shadow_GatherShadows']			= {nil,     '16346', '16347', '16348', '16349', '16350'}, -- Torment
+			['Spell_Shadow_SacrificialShield']	= {'16351', '16352', '16353', '16354', '16355', '16356'}, -- Sacrifice
+			['Spell_Shadow_AntiShadow']					= {'16357', '16358', '16359', '16360', '16361', '16362'}, -- Consume Shadows
+			['Spell_Shadow_BlackPlague']				= {'16363', '16364', '16365', '16366'} -- Suffering
 		},
 		['Succubus'] = {
-			['Lash of Pain'] 				= {nil,     '16368', '16371', '16372', '16373', '16374'},
-			['Soothing Kiss'] 			= {'16375', '16376', '16377', '16378'},
-			['Seduction'] 					= {'16379'},
-			['Lesser Invisibility'] = {'16380'}
+			['Spell_Shadow_Curse']							= {nil,     '16368', '16371', '16372', '16373', '16374'}, -- Lash of Pain
+			['Spell_Shadow_SoothingKiss']				= {'16375', '16376', '16377', '16378'}, -- Soothing Kiss
+			['Spell_Shadow_MindSteal']					= {'16379'}, -- Seduction
+			['Spell_Magic_LesserInvisibilty']		= {'16380'} -- Lesser Invisibility
 		},
 		['Felhunter'] = {
-			['Devour Magic'] 				= {nil,     '16381', '16382', '16383'},
-			['Tainted Blood'] 			= {'16384', '16385', '16386', '16387'},
-			['Spell Lock'] 					= {'16388', '16389'},
-			['Paranoia'] 						= {'16390'}
+			['Spell_Nature_Purge']							= {nil,     '16381', '16382', '16383'}, -- Devour Magic
+			['Spell_Shadow_LifeDrain']					= {'16384', '16385', '16386', '16387'}, -- Tainted Blood
+			['Spell_Shadow_MindRot']						= {'16388', '16389'}, -- Spell Lock
+			['Spell_Shadow_AuraOfDarkness']			= {'16390'} -- Paranoia
 		}
 	}
 	self:RegisterEvent('PET_BAR_UPDATE')
@@ -37,24 +37,16 @@ function GrimoireKeeper:OnInitialize()
 end
 
 function GrimoireKeeper:PET_BAR_UPDATE()
-	petType = UnitCreatureFamily('pet')
+	petType = self:GetDemonFamily()
 	if not petType then return end
 	
 	GrimoireKeeperData = {}
 	
-	for i=1, SPELLS_PER_PAGE do
-		local name, rank = GetSpellName(i, BOOKTYPE_PET)
-		if name then
-			_, _, rank = string.find(rank, '(%d)')
-			if not rank then rank = 1 end
-			if GetLocale() ~= 'enUS' then
-				name = AceLibrary('Babble-Spell-2.2'):GetReverseTranslation(name)
-			end
-			for i=1, tonumber(rank) do
-				local GrimoireID = GrimoireTable[petType][name][i]
-				if GrimoireID then
-					table.insert(GrimoireKeeperData, GrimoireID)
-				end
+	for spellTexture, spellRank in pairs(self:ScanPetSpells()) do
+		for i=1, spellRank do
+			local GrimoireID = GrimoireTable[petType][spellTexture][i]
+			if GrimoireID then
+				table.insert(GrimoireKeeperData, GrimoireID)
 			end
 		end
 	end
@@ -69,19 +61,27 @@ function GrimoireKeeper:MerchantFrame_UpdateMerchantInfo()
 		local itemButton = getglobal('MerchantItem'..i..'ItemButton')
 		local merchantButton = getglobal('MerchantItem'..i)
 		if index <= GetMerchantNumItems() then
+			local _, _, _, _, _, isUsable = GetMerchantItemInfo(index)
 			local link = GetMerchantItemLink(index)
 			if not link then return end
 			local _, _, itemID = string.find(link, 'item:(%d+):')
 			if self:isValidGrimuare(itemID) then
 				for k in pairs(GrimoireKeeperData) do
-					if itemID == GrimoireKeeperData[k] then
+					if itemID == GrimoireKeeperData[k] then -- if grimoire is known
 						SetItemButtonNameFrameVertexColor(merchantButton, 0, .5, .5)
 						SetItemButtonSlotVertexColor(merchantButton, 0, .5, .5)
 						SetItemButtonTextureVertexColor(itemButton, 0, .5, .5)
 						SetItemButtonNormalTextureVertexColor(itemButton, 0, .5, .5)
+						break
 					end
 				end
-			else
+				if not isUsable then -- if the level is small
+					SetItemButtonNameFrameVertexColor(merchantButton, .5, .5, 0)
+					SetItemButtonSlotVertexColor(merchantButton, .5, .5, 0)
+					SetItemButtonTextureVertexColor(itemButton, .5, .5, 0)
+					SetItemButtonNormalTextureVertexColor(itemButton, .5, .5, 0)
+				end
+			else -- If grimoire is not suitable for the current demon
 				SetItemButtonNameFrameVertexColor(merchantButton, .5, 0, 0)
 				SetItemButtonSlotVertexColor(merchantButton, .5, 0, 0)
 				SetItemButtonTextureVertexColor(itemButton, .5, 0, 0)
@@ -92,10 +92,36 @@ function GrimoireKeeper:MerchantFrame_UpdateMerchantInfo()
 end
 
 function GrimoireKeeper:isValidGrimuare(itemID)
-	for spellName, GrimoireIDs in pairs(GrimoireTable[petType]) do
+	for _, GrimoireIDs in pairs(GrimoireTable[petType]) do
 		for _, GrimoireID in pairs(GrimoireIDs) do
 			if itemID == GrimoireID then return true end
 		end
 	end
 	return false
+end
+
+function GrimoireKeeper:ScanPetSpells()
+	local knownSpells = {}
+	for spellIndex = 1, SPELLS_PER_PAGE do
+		local spellTexture = GetSpellTexture(spellIndex, BOOKTYPE_PET)
+		if not spellTexture then break end
+		spellTexture = string.gsub(spellTexture, 'Interface\\Icons\\', '')
+		local _, rank = GetSpellName(spellIndex, BOOKTYPE_PET)
+		_, _, rank = string.find(rank, '(%d)')
+		if not rank then rank = 1 end
+		knownSpells[spellTexture] = tonumber(rank)
+	end
+	return knownSpells
+end
+
+function GrimoireKeeper:GetDemonFamily()
+	if not PetActionBarFrame:IsShown() then return end
+	
+	for petType in pairs(GrimoireTable) do
+		for texture in pairs(GrimoireTable[petType]) do
+			if self:ScanPetSpells()[texture] then
+				return petType
+			end
+		end
+	end
 end

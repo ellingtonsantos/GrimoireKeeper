@@ -3,7 +3,7 @@
 ## Notes: Tracks which grimoires your warlock pets have learned.
 ## Notes-ruRU: Отслеживает, какие гримуары были изучены вашим демоном.
 ## Author: Lichery
-## Version: 3.1
+## Version: 3.2
 
 ## X-Date: 17.12.2017
 ## X-Credits: Original autor Ayradyss

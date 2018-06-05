@@ -5,7 +5,7 @@
 ## Author: Lichery
 ## Version: 3.3
 
-## X-Date: 17.12.2017
+## X-Date: 05.06.2018
 ## X-Credits: Original autor Ayradyss
 ## X-Category: Warlock 
 ## X-Website: https://vk.com/id65515748

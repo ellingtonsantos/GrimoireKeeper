@@ -2,7 +2,8 @@ local _, class = UnitClass('player')
 if class ~= 'WARLOCK' then return end
 
 local GrimoireKeeper = CreateFrame('Frame')
-local petType
+local demonType, GrimoireKeeperData
+local DemonSpellTable = {}
 local GrimoireTable = {
 	-- [spell name] = {grimoire id by ranks}
 	['Imp'] = {
@@ -33,14 +34,14 @@ local GrimoireTable = {
 
 GrimoireKeeper:RegisterEvent('PET_BAR_UPDATE')
 GrimoireKeeper:SetScript('OnEvent', function()
-	petType = GrimoireKeeper:GetDemonFamily()
-	if not petType then return end
+	demonType = GrimoireKeeper:GetDemonFamily()
+	if not demonType then return end
 	
 	GrimoireKeeperData = {}
 	
-	for spellTexture, spellRank in pairs(GrimoireKeeper:ScanPetSpells()) do
+	for spellTexture, spellRank in pairs(DemonSpellTable) do
 		for i=1, spellRank do
-			local GrimoireID = GrimoireTable[petType][spellTexture][i]
+			local GrimoireID = GrimoireTable[demonType][spellTexture][i]
 			if GrimoireID then
 				table.insert(GrimoireKeeperData, GrimoireID)
 			end
@@ -52,7 +53,7 @@ local oldMerchantFrame_UpdateMerchantInfo = MerchantFrame_UpdateMerchantInfo
 function MerchantFrame_UpdateMerchantInfo()
 	oldMerchantFrame_UpdateMerchantInfo()
 	local _, texture = GetMerchantItemInfo(1)
-	if not petType or texture ~= 'Interface\\Icons\\INV_Misc_Book_06' then return end
+	if not demonType or texture ~= 'Interface\\Icons\\INV_Misc_Book_06' then return end
 	
 	for i=1, MERCHANT_ITEMS_PER_PAGE do
 		local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
@@ -90,7 +91,7 @@ function MerchantFrame_UpdateMerchantInfo()
 end
 
 function GrimoireKeeper:isValidGrimoire(itemID)
-	for _, GrimoireIDs in pairs(GrimoireTable[petType]) do
+	for _, GrimoireIDs in pairs(GrimoireTable[demonType]) do
 		for _, GrimoireID in pairs(GrimoireIDs) do
 			if itemID == GrimoireID then return true end
 		end
@@ -98,27 +99,24 @@ function GrimoireKeeper:isValidGrimoire(itemID)
 	return false
 end
 
-function GrimoireKeeper:ScanPetSpells()
-	local knownSpells = {}
+function GrimoireKeeper:GetDemonFamily()
+	if not PetActionBarFrame:IsShown() then return end
+	
 	for spellIndex = 1, SPELLS_PER_PAGE do
 		local spellTexture = GetSpellTexture(spellIndex, BOOKTYPE_PET)
 		if not spellTexture then break end
+		
 		spellTexture = string.gsub(spellTexture, 'Interface\\Icons\\', '')
 		local _, rank = GetSpellName(spellIndex, BOOKTYPE_PET)
 		_, _, rank = string.find(rank, '(%d)')
 		if not rank then rank = 1 end
-		knownSpells[spellTexture] = tonumber(rank)
+		DemonSpellTable[spellTexture] = tonumber(rank)
 	end
-	return knownSpells
-end
 
-function GrimoireKeeper:GetDemonFamily()
-	if not PetActionBarFrame:IsShown() then return end
-	
-	for petType in pairs(GrimoireTable) do
-		for texture in pairs(GrimoireTable[petType]) do
-			if self:ScanPetSpells()[texture] then
-				return petType
+	for demon, textures in pairs(GrimoireTable) do
+		for texture in pairs(textures) do
+			if DemonSpellTable[texture] then
+				return demon
 			end
 		end
 	end

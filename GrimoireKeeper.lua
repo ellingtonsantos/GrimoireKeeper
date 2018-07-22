@@ -59,8 +59,8 @@ end)
 local oldMerchantFrame_UpdateMerchantInfo = MerchantFrame_UpdateMerchantInfo
 function MerchantFrame_UpdateMerchantInfo()
 	oldMerchantFrame_UpdateMerchantInfo()
-	if not (HasPetUI() or isDemonVendor) then return end
-		
+	if not (HasPetUI() and demonType and isDemonVendor) then return end
+	
 	for i=1, MERCHANT_ITEMS_PER_PAGE do
 		local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
 		local itemButton = getglobal('MerchantItem'..i..'ItemButton')

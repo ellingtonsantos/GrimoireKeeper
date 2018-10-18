@@ -14,4 +14,6 @@
 * **Green highlighting - known grimoire**
 * **Without highlighting - grimoire is available for training**
 
+**On the already learned (green) and unavailable to the current demon (red) grimoires, buying protection has been established. You can not buy them.**
+
 ![bandicam 2018-05-19 20-12-18-890](https://user-images.githubusercontent.com/24303693/40271712-bd9c4d96-5ba9-11e8-9fbb-3bd73bbc7f9b.jpg)

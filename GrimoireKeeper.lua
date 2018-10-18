@@ -2,11 +2,11 @@ local _, class = UnitClass('player')
 if class ~= 'WARLOCK' then return end
 
 local GrimoireKeeper = CreateFrame('Frame')
-local GrimoireKeeperData = {}
-local DemonSpellTable = {}
+local DemonSpellTable = {} -- table of learned demon spells
+local GrimoireDB = {} -- table of learned grimoires
 local demonType, isDemonVendor
 local GrimoireTable = {
-	-- [spell name] = {grimoire id by ranks}
+	-- [spell texture] = {grimoire id by ranks}
 	['Imp'] = {
 		['Spell_Fire_FireBolt']							= {nil,     '16302', '16316', '16317', '16318', '16319', '16320'}, -- Firebolt
 		['Spell_Shadow_BloodBoil']					= {'16321', '16322', '16323', '16324', '16325'}, -- Blood Pact
@@ -34,67 +34,21 @@ local GrimoireTable = {
 }
 
 GrimoireKeeper:RegisterEvent('MERCHANT_SHOW')
-GrimoireKeeper:RegisterEvent('MERCHANT_CLOSED')
 GrimoireKeeper:RegisterEvent('PET_BAR_UPDATE')
 GrimoireKeeper:SetScript('OnEvent', function()
 	if event == 'MERCHANT_SHOW' then
+		isDemonVendor = nil
 		local _, texture = GetMerchantItemInfo(1)
 		if texture == 'Interface\\Icons\\INV_Misc_Book_06' then isDemonVendor = true end
 		if not (isDemonVendor or HasPetUI()) then return end
-		demonType = this:GetDemonFamily()
-		if not demonType then return end
-		
-		this:UpdateGrimoireData()
-		MerchantFrame_UpdateMerchantInfo()
-	elseif event == 'MERCHANT_CLOSED' then
-		isDemonVendor = nil
-		GrimoireKeeperData = {}
-	elseif event == 'PET_BAR_UPDATE' and isDemonVendor then
-		demonType = this:GetDemonFamily()
-		this:UpdateGrimoireData()
-		MerchantFrame_UpdateMerchantInfo()
 	end
-end)
+	-- The code below works for all registered events.
+	demonType = this:GetDemonFamily()
+	if not demonType then return end
 
-local oldMerchantFrame_UpdateMerchantInfo = MerchantFrame_UpdateMerchantInfo
-function MerchantFrame_UpdateMerchantInfo()
-	oldMerchantFrame_UpdateMerchantInfo()
-	if not (HasPetUI() and demonType and isDemonVendor) then return end
-	
-	for i=1, MERCHANT_ITEMS_PER_PAGE do
-		local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
-		local itemButton = getglobal('MerchantItem'..i..'ItemButton')
-		local merchantButton = getglobal('MerchantItem'..i)
-		if index <= GetMerchantNumItems() then
-			local _, _, _, _, _, isUsable = GetMerchantItemInfo(index)
-			local link = GetMerchantItemLink(index)
-			if not link then return end
-			local _, _, itemID = string.find(link, 'item:(%d+):')
-			if GrimoireKeeper:isValidGrimoire(itemID) then
-				for k in pairs(GrimoireKeeperData) do
-					if itemID == GrimoireKeeperData[k] then -- if grimoire is known
-						SetItemButtonNameFrameVertexColor(merchantButton, 0, .5, .5)
-						SetItemButtonSlotVertexColor(merchantButton, 0, .5, .5)
-						SetItemButtonTextureVertexColor(itemButton, 0, .5, .5)
-						SetItemButtonNormalTextureVertexColor(itemButton, 0, .5, .5)
-						break
-					end
-				end
-				if not isUsable then -- if the level is small
-					SetItemButtonNameFrameVertexColor(merchantButton, .5, .5, 0)
-					SetItemButtonSlotVertexColor(merchantButton, .5, .5, 0)
-					SetItemButtonTextureVertexColor(itemButton, .5, .5, 0)
-					SetItemButtonNormalTextureVertexColor(itemButton, .5, .5, 0)
-				end
-			else -- If grimoire is not suitable for the current demon
-				SetItemButtonNameFrameVertexColor(merchantButton, .5, 0, 0)
-				SetItemButtonSlotVertexColor(merchantButton, .5, 0, 0)
-				SetItemButtonTextureVertexColor(itemButton, .5, 0, 0)
-				SetItemButtonNormalTextureVertexColor(itemButton, .5, 0, 0)
-			end
-		end
-	end
-end
+	this:UpdateGrimoireData()
+	MerchantFrame_UpdateMerchantInfo()
+end)
 
 function GrimoireKeeper:isValidGrimoire(itemID)
 	for _, GrimoireIDs in pairs(GrimoireTable[demonType]) do
@@ -113,16 +67,18 @@ function GrimoireKeeper:GetDemonFamily()
 			if DemonSpellTable[texture] then return demonFamily end
 		end
 	end
+	return
 end
 
 function GrimoireKeeper:ScanDemonSpells()
 	DemonSpellTable = {}
+	local spellTexture, rank
 	for spellIndex = 1, SPELLS_PER_PAGE do
-		local spellTexture = GetSpellTexture(spellIndex, BOOKTYPE_PET)		
+		spellTexture = GetSpellTexture(spellIndex, BOOKTYPE_PET)		
 		if not spellTexture then break end
 		
 		spellTexture = string.gsub(spellTexture, 'Interface\\Icons\\', '')
-		local _, rank = GetSpellName(spellIndex, BOOKTYPE_PET)
+		_, rank = GetSpellName(spellIndex, BOOKTYPE_PET)
 		_, _, rank = string.find(rank, '(%d)')
 		if not rank then rank = 1 end
 		DemonSpellTable[spellTexture] = tonumber(rank)
@@ -130,10 +86,56 @@ function GrimoireKeeper:ScanDemonSpells()
 end
 
 function GrimoireKeeper:UpdateGrimoireData()
+	GrimoireDB = {}
+	local GrimoireID
 	for spellTexture, spellRank in pairs(DemonSpellTable) do
 		for i=1, spellRank do
-			local GrimoireID = GrimoireTable[demonType][spellTexture][i]
-			table.insert(GrimoireKeeperData, GrimoireID)
+			GrimoireID = GrimoireTable[demonType][spellTexture][i]
+			if GrimoireID then
+				GrimoireDB[GrimoireID] = true
+			end
 		end
 	end
+end
+
+local oldMerchantFrame_UpdateMerchantInfo = MerchantFrame_UpdateMerchantInfo
+function MerchantFrame_UpdateMerchantInfo()
+	oldMerchantFrame_UpdateMerchantInfo()
+	if not (HasPetUI() and demonType and isDemonVendor) then return end
+	
+	local index, itemButton, merchantButton, isUsable, link, itemID
+	local ir, ig, ib -- color for itemButton
+	local mr, mg, mb -- color for merchantButton
+	for i=1, MERCHANT_ITEMS_PER_PAGE do
+		index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE + i
+		itemButton = getglobal('MerchantItem'..i..'ItemButton')
+		merchantButton = getglobal('MerchantItem'..i)
+		itemButton:SetScript("OnClick", function() MerchantItemButton_OnClick(this) end) -- return the possibility of buying the items (when changing the page MerchantFrame)
+		if index > GetMerchantNumItems() then return end
+		_, _, _, _, _, isUsable = GetMerchantItemInfo(index)
+		link = GetMerchantItemLink(index)
+		if not link then return end
+		_, _, itemID = string.find(link, 'item:(%d+):')
+		
+		if not GrimoireKeeper:isValidGrimoire(itemID) then -- if grimoire is not suitable for the current demon
+			mr, mg, mb, ir, ig, ib = .5, 0, 0 -- red color
+			itemButton:SetScript("OnClick", function() end) -- disabling item buying
+		elseif not isUsable then -- if the level is small
+			mr, mg, mb, ir, ig, ib = .5, .5, 0 -- yellow color
+		elseif GrimoireDB[itemID] then -- if grimoire is known
+			mr, mg, mb, ir, ig, ib = 0, .5, .5 -- green color
+			itemButton:SetScript("OnClick", function() end) -- disabling item buying
+		else -- available for buying
+			mr, mg, mb, ir, ig, ib = .5, .5, .5, 1, 1, 1 -- white color
+		end
+		GrimoireKeeper:ColorButton(merchantButton, itemButton, mr, mg, mb, ir, ig, ib)
+	end
+end
+
+function GrimoireKeeper:ColorButton(merchantButton, itemButton, mr, mg, mb, ir, ig, ib)
+	if not (ir or ig or ib) then ir, ig, ib = mr, mg, mb end
+	SetItemButtonNameFrameVertexColor(merchantButton, mr, mg, mb)
+	SetItemButtonSlotVertexColor(merchantButton, mr, mg, mb)
+	SetItemButtonTextureVertexColor(itemButton, ir, ig, ib)
+	SetItemButtonNormalTextureVertexColor(itemButton, ir, ig, ib)
 end

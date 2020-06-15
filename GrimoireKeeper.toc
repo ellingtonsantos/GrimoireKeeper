@@ -2,6 +2,7 @@
 ## Title: GrimoireKeeper
 ## Notes: Tracks which grimoires your warlock pets have learned.
 ## Notes-ruRU: Отслеживает, какие гримуары были изучены вашим демоном.
+## Notes-ptBR: Identifica quais grimórios os pets dos seus bruxos já aprenderam.
 ## Author: Artur91425
 ## Version: 3.5
 

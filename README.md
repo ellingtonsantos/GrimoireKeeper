@@ -1,8 +1,10 @@
 # GrimoireKeeper
 [1.12.1] Tracks which grimoires your warlock pets have learned.
 
+*Read this in other languages: [English](README.md), [Português](README.ptBR.md).*
+
 ## Installation
-1. Download **[Latest Version](https://gitlab.com/Artur91425/GrimoireKeeper/-/archive/master/GrimoireKeeper-master.zip)**
+1. Download **[Latest Version](https://github.com/ellingtonsantos/GrimoireKeeper/archive/master.zip)**
 2. Unpack the Zip file
 3. Rename the folder "GrimoireKeeper-master" to "GrimoireKeeper"
 4. Copy "GrimoireKeeper" into Wow-Directory\Interface\AddOns\
